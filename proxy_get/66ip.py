@@ -109,7 +109,7 @@ def run_get_all_ips():
 def run_get_available_ips():
     write_lock = Lock()
     r.delete(config.PROXY_AVAILABLE_66IP_KEY)
-    proxies = r.lrange(config.PROXY_AVAILABLE_66IP_KEY, 0, -1)
+    proxies = r.lrange(config.PROXY_ALL_66IP_KEY, 0, -1)
     num_list = splist(proxies, len(proxies) // 20)
     for idx, i in enumerate(num_list):
         t = Thread(target=get_available_proxies, args=(i, r, idx, write_lock))
