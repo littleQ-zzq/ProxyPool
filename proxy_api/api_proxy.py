@@ -26,12 +26,7 @@ def get_available_proxy(proxy_key):
     proxie_list = []
     proxies = r.lrange(proxy_key, 0, -1)
     for proxy in proxies:
-        proxy_format = "http://{}".format(proxy.decode())
-        proxie_list.append(
-            {
-                "http": proxy_format,
-                "https": proxy_format
-            })
+        proxie_list.append(proxy.decode())
     return {"result": proxie_list}
 
 
