@@ -52,7 +52,6 @@ def get_proxy_info(index_num, bar_n):
     :param bar_n:
     :return:
     """
-    r.delete(config.PROXY_ALL_66IP_KEY)
     text = "bar {}".format(bar_n)
     for page in tqdm(index_num, desc=text, position=bar_n):
         gen_response = yield from session.get(url=config.URL_66IP.format(str(page)))
@@ -92,11 +91,12 @@ def get_available_proxies(proxies, r, thread_num, write_lock):
             logger.info("Not available proxy")
 
 
-def run_get_all_ips():
+def run_get_all_ips(concurrent_num):
     total_pages = get_total_pages()
     if total_pages:
+        r.delete(config.PROXY_ALL_66IP_KEY)
         page_list = list(range(2, total_pages+1)) + ["index"]
-        num_list = splist(page_list, total_pages//10)
+        num_list = splist(page_list, total_pages//concurrent_num)
         to_do = []
         for idx, l in enumerate(num_list):
             to_do.append(get_proxy_info(l, idx))
@@ -106,16 +106,16 @@ def run_get_all_ips():
         loop.close()
 
 
-def run_get_available_ips():
+def run_get_available_ips(thread_num):
     write_lock = Lock()
     r.delete(config.PROXY_AVAILABLE_66IP_KEY)
     proxies = r.lrange(config.PROXY_ALL_66IP_KEY, 0, -1)
-    num_list = splist(proxies, len(proxies) // 20)
+    num_list = splist(proxies, len(proxies) // thread_num)
     for idx, i in enumerate(num_list):
         t = Thread(target=get_available_proxies, args=(i, r, idx, write_lock))
         t.start()
 
 
 if __name__ == '__main__':
-    run_get_all_ips()
-    run_get_available_ips()
+    run_get_all_ips(20)
+    run_get_available_ips(50)
